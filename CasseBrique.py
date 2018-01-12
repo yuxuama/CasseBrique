@@ -49,7 +49,6 @@ class Brique:
                 self.update_couleur()
                 return True
 
-        print(COMPTEUR)
         return False
 
     def touche_balle_coin(self, balle):
