@@ -1,7 +1,6 @@
 # Author Matthieu Lecomte
-from Tkinter import *
-import random
 import time
+from Tkinter import *
 from math import *
 
 """objets"""
@@ -14,7 +13,6 @@ H = 600
 H2 = H / 2
 R = 300.
 PAUSE = False
-COMPTEUR = 0
 VIE = 3
 
 
@@ -25,48 +23,37 @@ class Brique:
         self.x2 = x2
         self.y2 = y2
         self.bri = canvas.create_rectangle(self.x1, self.y1, self.x2, self.y2, fill=couleur[i_couleur])
-        # rcompt = [ 1, 2, 3]
-        # random.shuffle(rcompt)
         self.compteur = i_couleur + 1
 
-    def touche_la_balle(self, balle, COMPTEUR):
+    def touche_la_balle(self, balle):
         ce = balle.centre()
         ra = balle.rayon()
-        width = self.x2 - self.x1
-        height = self.y2 - self.y1
-        if ce[0] <= self.x2 and ce[0] >= self.x1:
-            if (ce[1] + ra >= self.y1 and ce[1] - ra <= self.y2):
-                COMPTEUR += 1
+        # width = self.x2 - self.x1
+        # height = self.y2 - self.y1
+        if self.x2 >= ce[0] >= self.x1:
+            if ce[1] > self.y2 >= ce[1] - ra:
                 balle.dy *= -1
                 self.compteur -= 1
                 self.update_couleur()
                 return True
-        if ce[1] <= self.y2 and ce[1] >= self.y1:
-            if (ce[0] + ra >= self.x1 and ce[0] - ra <= self.x2):
-                COMPTEUR += 1
+            if ce[1] < self.y1 <= ce[1] + ra:
+                balle.dy *= -1
+                self.compteur -= 1
+                self.update_couleur()
+                return True
+        if self.y2 >= ce[1] >= self.y1:
+            if ce[0] > self.x2 >= ce[0] - ra:
+                balle.dx *= -1
+                self.compteur -= 1
+                self.update_couleur()
+                return True
+            if ce[0] < self.x1 <= ce[1] + ra:
                 balle.dx *= -1
                 self.compteur -= 1
                 self.update_couleur()
                 return True
 
         return False
-
-    def touche_balle_coin(self, balle):
-        ce = balle.centre()
-        ra = balle.rayon()
-        if ce[0] > self.x1:
-            cx = ce[0] - self.x2
-        else:
-            cx = abs(ce[0] - self.x1)
-        if ce[1] > self.y2:
-            cy = ce[1] - self.y2
-        else:
-            cy = abs(ce[1] - self.y1)
-        h = sqrt(cy * cy + cx * cx)
-        if h == ra:
-            self.compteur -= 1
-            balle.dx *= -1
-            balle.dy *= -1
 
     def is_dead(self):
         return self.compteur <= 0
@@ -98,7 +85,7 @@ class Balle:
         self.started = not self.started
 
     def deplace(self):
-        if (self.started == False):
+        if not self.started:
             return
         canvas.move(self.oval, self.dx, self.dy)
 
@@ -109,7 +96,7 @@ class Balle:
             if c[1] <= raquette.bas_y() + (raquette.bas_y() - raquette.haut_y()) + r and c[1] + r == raquette.haut_y():
                 self.modifie(raquette)
         if c[1] <= raquette.bas_y() and c[1] >= raquette.haut_y():
-            if (c[0] + r >= raquette.haut_x() and c[0] - r <= raquette.bas_x()):
+            if c[0] + r >= raquette.haut_x() and c[0] - r <= raquette.bas_x():
                 self.dx *= -1
 
     def touche_un_bord(self):
@@ -248,13 +235,10 @@ while 1:
     balle.toucher_la_raquette(raquette)
     brique_dead = []
     for bri in briques:
-        bri.touche_la_balle(balle, COMPTEUR)
+        bri.touche_la_balle(balle)
         bri.touche_balle_coin(balle)
         if bri.is_dead():
             brique_dead.append(bri)
-
-    if COMPTEUR >= 2:
-        COMPTEUR = 0
 
     for bri in brique_dead:
         bri.efface()
