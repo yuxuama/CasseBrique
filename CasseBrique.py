@@ -1,255 +1,91 @@
 # Author Matthieu Lecomte
 import time
 from Tkinter import *
-from math import *
-
-"""objets"""
-
-couleur = ['cyan', 'green', 'red']
-WIDTH = 396
-W2 = WIDTH / 2
-L = WIDTH
-H = 600
-H2 = H / 2
-R = 300.
-PAUSE = False
-VIE = 3
+from Brique import Brique
+from Balle import Balle
+from Score import Score
+from Raquette import Raquette
 
 
-class Brique:
-    def __init__(self, x1, y1, x2, y2, i_couleur):
-        self.x1 = x1
-        self.y1 = y1
-        self.x2 = x2
-        self.y2 = y2
-        self.bri = canvas.create_rectangle(self.x1, self.y1, self.x2, self.y2, fill=couleur[i_couleur])
-        self.compteur = i_couleur + 1
+class CasseBrique:
 
-    def touche_la_balle(self, balle):
-        ce = balle.centre()
-        ra = balle.rayon()
-        # width = self.x2 - self.x1
-        # height = self.y2 - self.y1
-        if self.x2 >= ce[0] >= self.x1:
-            if ce[1] > self.y2 >= ce[1] - ra:
-                balle.dy *= -1
-                self.compteur -= 1
-                self.update_couleur()
-                return True
-            if ce[1] < self.y1 <= ce[1] + ra:
-                balle.dy *= -1
-                self.compteur -= 1
-                self.update_couleur()
-                return True
-        if self.y2 >= ce[1] >= self.y1:
-            if ce[0] > self.x2 >= ce[0] - ra:
-                balle.dx *= -1
-                self.compteur -= 1
-                self.update_couleur()
-                return True
-            if ce[0] < self.x1 <= ce[1] + ra:
-                balle.dx *= -1
-                self.compteur -= 1
-                self.update_couleur()
-                return True
-
-        return False
-
-    def is_dead(self):
-        return self.compteur <= 0
-
-    def efface(self):
-        canvas.delete(self.bri)
-
-    def update_couleur(self):
-        if self.compteur == 1:
-            canvas.itemconfig(self.bri, fill='cyan')
-        if self.compteur == 2:
-            canvas.itemconfig(self.bri, fill='green')
-        if self.compteur == 3:
-            canvas.itemconfig(self.bri, fill='red')
-
-
-class Balle:
-    def __init__(self, x1, y1, x2, y2):
-        self.dx = 8
-        self.dy = -8
-        self.started = False
-        self.oval = canvas.create_oval(x1, y1, x2, y2, fill='blue', outline='blue')
-        self.x1 = x1
-        self.x2 = x2
-        canvas.bind_all('<KeyPress-space>', self.traite_evt_clavier)
-        self.touche_bas = False
-
-    def demarre(self):
-        self.started = not self.started
-
-    def deplace(self):
-        if not self.started:
-            return
-        canvas.move(self.oval, self.dx, self.dy)
-
-    def toucher_la_raquette(self, raquette):
-        c = self.centre()
-        r = self.rayon()
-        if c[0] <= raquette.bas_x() and c[0] >= raquette.haut_x():
-            if c[1] <= raquette.bas_y() + (raquette.bas_y() - raquette.haut_y()) + r and c[1] + r == raquette.haut_y():
-                self.modifie(raquette)
-        if c[1] <= raquette.bas_y() and c[1] >= raquette.haut_y():
-            if c[0] + r >= raquette.haut_x() and c[0] - r <= raquette.bas_x():
-                self.dx *= -1
-
-    def touche_un_bord(self):
-        pasi = canvas.coords(self.oval)
-        if pasi[0] <= 0:
-            canvas.move(self.oval, abs(pasi[0]), 0)
-            self.dx *= -1
-        if pasi[2] >= L:
-            canvas.move(self.oval, (L - pasi[2]), 0)
-            self.dx *= -1
-        if pasi[1] <= 0:
-            canvas.move(self.oval, 0, abs(pasi[1]))
-            self.dy *= -1
-        if pasi[3] >= H:
-            self.touche_bas = True
-            self.dy *= -1
-
-    def rayon(self):
-        rayon = (self.x2 - self.x1) / 2
-        return rayon
-
-    def centre(self):
-        pas = canvas.coords(self.oval)
-        centre_x = (pas[0] + pas[2]) / 2
-        centre_y = (pas[1] + pas[3]) / 2
-        return [centre_x, centre_y]
-
-    def traite_evt_clavier(self, evt):
-        if evt.keysym == 'space':
-            self.demarre()
-
-    def coords_impact(self):
-        c = self.centre()
-        r = self.rayon()
-        imp_y = c[1] + r
-        p_impact = [c[0], imp_y]
-        return p_impact
-
-    def distance_centre_ra(self, raquette):
-        p_impact2 = self.coords_impact()
-        return abs(p_impact2[0] - raquette.centre())
-
-    def modifie(self, raquette):
-        dcr = self.distance_centre_ra(raquette)
-        dr = dcr / R
-        l = sqrt(self.dx * self.dx + self.dy * self.dy)
-        alpha = atan2(self.dy, self.dx)
-        beta = asin(dr)
-        self.dy = -l * sin(alpha + 2 * beta)
-        self.dx = l * cos(alpha + 2 * beta)
-
-
-class Raquette:
     def __init__(self):
-        self.rectangle = canvas.create_rectangle(150, 520, 250, 540, fill='orange', outline='orange')
-        canvas.bind_all("<KeyPress-Left>", self.mouvement_de_la_raquette)
-        canvas.bind_all("<KeyPress-Right>", self.mouvement_de_la_raquette)
+        self.couleur = ['cyan', 'green', 'red']
+        self.WIDTH = 396
+        self.W2 = self.WIDTH / 2
+        self.L = self.WIDTH
+        self.H = 600
+        self.H2 = self.H / 2
+        self.R = 300.
+        self.PAUSE = False
+        self.VIE = 3
+        self.tk = Tk()
+        self.tk.title('CASSE BRIQUE')
+        self.canvas = Canvas(self.tk, width=self.L, height=self.H)
+        self.canvas.bind_all("<KeyPress-Left>", self.traite_keys_event)
+        self.canvas.bind_all("<KeyPress-Right>", self.traite_keys_event)
 
-    def mouvement_de_la_raquette(self, evenement):
-        pos = canvas.coords(self.rectangle)
+        self.canvas.pack()
+
+        self.raquette = Raquette(self.canvas)
+        self.balle = Balle(self, 190, 499, 210, 519)
+        self.score = Score(self, 350, 580, 60)
+
+    def traite_keys_event(self, evenement):
         if evenement.keysym == 'Right':
-            canvas.move(self.rectangle, 10, 0)
-            if pos[2] >= 400:
-                canvas.move(self.rectangle, -10, 0)
+            self.raquette.deplace(10)
+            self.balle.deplace(10)
         elif evenement.keysym == 'Left':
-            canvas.move(self.rectangle, -10, 0)
-            if pos[0] <= 0:
-                canvas.move(self.rectangle, 10, 0)
+            self.raquette.deplace(-10)
+            self.balle.deplace(-10)
 
-    def centre(self):
-        pos = canvas.coords(self.rectangle)
-        return (pos[0] + pos[2]) / 2.
+    def play(self):
 
-    def haut_x(self):
-        pos = canvas.coords(self.rectangle)
-        return pos[0]
+        self.tk.update()
 
-    def haut_y(self):
-        pos = canvas.coords(self.rectangle)
-        return pos[1]
+        briques = []
 
-    def bas_x(self):
-        pos = canvas.coords(self.rectangle)
-        return pos[2]
+        i_couleur = 0
+        for g in range(0, 11):
+            x1 = 44 * g + 5
+            x2 = x1 + 40
+            for f in range(0, 6):
+                y1 = 25 * f + 5
+                y2 = y1 + 20
+                bri = Brique(self, x1, y1, x2, y2, self.couleur[i_couleur])
+                briques.append(bri)
+                i_couleur += 1
+                if i_couleur > 2:
+                    i_couleur = 0
 
-    def bas_y(self):
-        pos = canvas.coords(self.rectangle)
-        return pos[3]
+        while 1:
+
+            if not self.balle.touche_bas:
+                self.balle.deplace(0)
+                self.balle.touche_un_bord()
+                self.score.uptade(bri)
+            self.balle.toucher_la_raquette(self.raquette)
+            brique_dead = []
+            for bri in briques:
+                bri.touche_la_balle(self.balle)
+                if bri.is_dead():
+                    brique_dead.append(bri)
+
+            for bri in brique_dead:
+                bri.efface()
+                briques.remove(bri)
+
+            if self.balle.touche_bas:
+                self.canvas.create_text(self.W2, 300, text='Game over', font=60)
+                break
+
+            if briques == []:
+                self.canvas.create_text(self.W2, 300, text='Bravo', font=60)
+
+            self.tk.update_idletasks()
+            self.tk.update()
+            time.sleep(0.1)
 
 
-class Score:
-    def __init__(self, x1, y1, f):
-        self.score = 0
-        self.cscore = canvas.create_text(x1, y1, text='Score = %s' % self.score, font=f)
-        self.cscore2 = canvas.create_rectangle(310, 570, 390, 590, outline='red')
-
-    def uptade(self, bri):
-        if bri.compteur <= 0:
-            self.score += 1
-            canvas.itemconfig(self.cscore, text='Score = %s' % self.score)
-
-
-tk = Tk()
-tk.title('CASSE BRIQUE')
-canvas = Canvas(tk, width=L, height=H)
-
-canvas.pack()
-
-raquette = Raquette()
-balle = Balle(190, 300, 210, 320)
-score = Score(350, 580, 60)
-tk.update()
-
-briques = []
-
-i_couleur = 0
-for g in range(0, 11):
-    x1 = 44 * g + 5
-    x2 = x1 + 40
-    for f in range(0, 6):
-        y1 = 25 * f + 5
-        y2 = y1 + 20
-        bri = Brique(x1, y1, x2, y2, i_couleur)
-        briques.append(bri)
-        bri.update_couleur()
-        i_couleur += 1
-        if i_couleur > 2:
-            i_couleur = 0
-
-while 1:
-
-    if balle.touche_bas == False:
-        balle.deplace()
-        balle.touche_un_bord()
-        score.uptade(bri)
-    balle.toucher_la_raquette(raquette)
-    brique_dead = []
-    for bri in briques:
-        bri.touche_la_balle(balle)
-        bri.touche_balle_coin(balle)
-        if bri.is_dead():
-            brique_dead.append(bri)
-
-    for bri in brique_dead:
-        bri.efface()
-        briques.remove(bri)
-
-    if balle.touche_bas == True:
-        canvas.create_text(W2, 300, text='Game over', font=60)
-
-    if briques == []:
-        canvas.create_text(W2, 300, text='Bravo', font=60)
-
-    tk.update_idletasks()
-    tk.update()
-    time.sleep(0.1)
+casse_brique = CasseBrique()
+casse_brique.play()
