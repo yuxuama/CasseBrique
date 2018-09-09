@@ -8,7 +8,11 @@ class Raquette:
 
     def deplace(self, dx):
         pos = self.canvas.coords(self.rectangle)
-        if pos[2]+dx < 400 or pos[0] + dx > 0:
+        if pos[2] + dx >= 396:
+            self.canvas.move(self.rectangle, -1, 0)
+        if pos[0] - dx <= 0:
+            self.canvas.move(self.rectangle, 1, 0)
+        else:
             self.canvas.move(self.rectangle, dx, 0)
 
     def centre(self):
@@ -30,4 +34,3 @@ class Raquette:
     def bas_y(self):
         pos = self.canvas.coords(self.rectangle)
         return pos[3]
-

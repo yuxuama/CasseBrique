@@ -1,6 +1,7 @@
 
 from math import *
 
+
 class Balle:
 
     def __init__(self, casse_brique, x1, y1, x2, y2):
@@ -13,26 +14,29 @@ class Balle:
         self.x1 = x1
         self.x2 = x2
         self.y2 = y2
-        casse_brique.canvas.bind_all('<KeyPress-space>', self.traite_evt_clavier)
         self.touche_bas = False
 
     def demarre(self):
         self.started = not self.started
 
-    def deplace(self, deplacement):
+    def deplace(self, dx):
         if self.started:
             self.casse_brique.canvas.move(self.oval, self.dx, self.dy)
-        else:
-            self.casse_brique.canvas.move(self.oval, deplacement, 0)
 
-    def toucher_la_raquette(self, raquette):
+        self.casse_brique.canvas.move(self.oval, dx, 0)
+
+    def toucher_la_raquette(self):
         c = self.centre()
         r = self.rayon()
-        if c[0] <= raquette.bas_x() and c[0] >= raquette.haut_x():
-            if c[1] <= raquette.bas_y() + (raquette.bas_y() - raquette.haut_y()) + r and c[1] + r == raquette.haut_y():
-                self.modifie(raquette)
-        if c[1] <= raquette.bas_y() and c[1] >= raquette.haut_y():
-            if c[0] + r >= raquette.haut_x() and c[0] - r <= raquette.bas_x():
+        if self.casse_brique.raquette.bas_x() >= c[0] >= self.casse_brique.raquette.haut_x():
+            if c[1] + r >= self.casse_brique.raquette.haut_y() and c[1] < self.casse_brique.raquette.bas_y():
+                self.modifie()
+            elif c[1] - r <= self.casse_brique.raquette.bas_y and c[1] > self.casse_brique.raquette.haut_y():
+                self.dy *= -1
+        if self.casse_brique.raquette.bas_y() >= c[1] >= self.casse_brique.raquette.haut_y():
+            if c[0] + r >= self.casse_brique.raquette.haut_x() and c[0] < self.casse_brique.raquette.bas_x():
+                self.dx *= -1
+            elif c[0] - r <= self.casse_brique.raquette.bas_x() and c[0] > self.casse_brique.raquette.haut_x():
                 self.dx *= -1
 
     def touche_un_bord(self):
@@ -60,10 +64,6 @@ class Balle:
         centre_y = (pas[1] + pas[3]) / 2
         return [centre_x, centre_y]
 
-    def traite_evt_clavier(self, evt):
-        if evt.keysym == 'space':
-            self.demarre()
-
     def coords_impact(self):
         c = self.centre()
         r = self.rayon()
@@ -71,12 +71,12 @@ class Balle:
         p_impact = [c[0], imp_y]
         return p_impact
 
-    def distance_centre_ra(self, raquette):
+    def distance_centre_ra(self):
         p_impact2 = self.coords_impact()
-        return abs(p_impact2[0] - raquette.centre())
+        return abs(p_impact2[0] - self.casse_brique.raquette.centre())
 
-    def modifie(self, raquette):
-        dcr = self.distance_centre_ra(raquette)
+    def modifie(self):
+        dcr = self.distance_centre_ra()
         dr = dcr / self.casse_brique.R
         l = sqrt(self.dx * self.dx + self.dy * self.dy)
         alpha = atan2(self.dy, self.dx)

@@ -6,8 +6,7 @@ class Score:
         self.cscore = self.casse_brique.canvas.create_text(x1, y1, text='Score = %s' % self.score, font=f)
         self.cscore2 = self.casse_brique.canvas.create_rectangle(310, 570, 390, 590, outline='red')
 
-    def uptade(self, bri):
-        if bri.compteur <= 0:
-            self.score += 1
-            self.casse_brique.canvas.itemconfig(self.cscore, text='Score = %s' % self.score)
+    def update(self):
+        self.score += 1
+        self.casse_brique.canvas.itemconfig(self.cscore, text='Score = %s' % self.score)
 
